@@ -12,12 +12,13 @@ void sd_send_cmd(int index, uint16_t argh, uint16_t argl, int *res) {
     SDREG(MEGASOC_SD_ARGR_L) = argl;
     // Set and send cmd
     switch(index) {
+        case 13: cmd |= (0b10 << 0) | (1 << 3) | (1 << 4); break; 
         case 0: break;
         case 8: cmd |= (0b10 << 0) | (1 << 3) | (1 << 4); break; 
         case 55: cmd |= (0b10 << 0) | (1 << 3) | (1 << 4); break;
         case 41: cmd |= (0b10 << 0); break;
         case 2: cmd |= (0b01 << 0) | (1 << 3); break;
-        case 3: cmd |= (0b10 << 0) | (1 << 3) | (1 << 4); break;
+        case 23: case 16: case 3: cmd |= (0b10 << 0) | (1 << 3) | (1 << 4); break;
         case 7: cmd |= (0b11 << 0) | (1 << 3) | (1 << 4); break;
     }
     debugf("Sending CMD%d: %x\n",index,cmd);
@@ -38,7 +39,7 @@ void sd_send_cmd(int index, uint16_t argh, uint16_t argl, int *res) {
     }
     // Reset interruputs
     // TODO: This is DUMB; see if it works
-    SDREG(MEGASOC_SD_NISR) = 0;
+    SDREG(MEGASOC_SD_NISR) = 0xffff;
 }
 
 void sd_send_cmd18(u_int sd_addr) {
@@ -52,7 +53,8 @@ void sd_send_cmd18(u_int sd_addr) {
     debugf("ARGS: %x %x\n",SDREG(MEGASOC_SD_ARGR_H), SDREG(MEGASOC_SD_ARGR_L));
     SDREG(MEGASOC_SD_CMDR)= cmd;
     // Wait
-    while(!(SDREG(MEGASOC_SD_NISR) & (0x3))) {};
+    while(!(SDREG(MEGASOC_SD_NISR) & (0x2))) {
+    };
     // Check err
     if (SDREG(MEGASOC_SD_EISR) | SDREG(MEGASOC_SD_ADMAESR)) {
         debugf("CMD18 ERR: %d\n",SDREG(MEGASOC_SD_EISR));

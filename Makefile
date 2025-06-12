@@ -15,7 +15,7 @@ qemu_files              := $(mos_elf)
 
 QEMU_FLAGS              := -M ls3a5k32 -m 64M -nographic -no-reboot \
 						 -drive if=sd,file=target/fs.img,format=raw \
-						 -d guest_errors,trace:sdhci* -D log.txt\
+						 -d guest_errors,trace:sd* -D log.txt\
 
 ifneq ($(prog),)
 dbg_elf                 := -ex "add-symbol-file $(prog)"
