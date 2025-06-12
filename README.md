@@ -1,0 +1,6 @@
+- 基于课程组未完成的移植版本
+- SD卡的初始化/发指令操作在`kern/sd.c`中，对应有`include/sd.h`
+- SD卡读写部分，通过更改`kern/syscall_all.c`的`sys_read/write_block`实现；对应更改了`fs/ide.c`中的`ide_read/write()`；
+- 给qemu加了一点参数，使之可以在根目录的`log.txt`中记录SD卡操作情况
+- 写操作与读操作应该是类似的，目前我只写了读操作，而且有bug
+- **不保证初始化/已有的读操作不存在问题**，可能需要仔细审查...orz
