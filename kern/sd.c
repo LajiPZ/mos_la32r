@@ -21,14 +21,14 @@ void sd_send_cmd(int index, uint16_t argh, uint16_t argl, int *res) {
         case 23: case 16: case 3: cmd |= (0b10 << 0) | (1 << 3) | (1 << 4); break;
         case 7: cmd |= (0b11 << 0) | (1 << 3) | (1 << 4); break;
     }
-    debugf("Sending CMD%d: %x\n",index,cmd);
-    debugf("ARGS: %x %x\n",SDREG(MEGASOC_SD_ARGR_H), SDREG(MEGASOC_SD_ARGR_L));
+    // debugf("Sending CMD%d: %x\n",index,cmd);
+    // debugf("ARGS: %x %x\n",SDREG(MEGASOC_SD_ARGR_H), SDREG(MEGASOC_SD_ARGR_L));
     SDREG(MEGASOC_SD_CMDR)= cmd;
     // Wait
     while(!SDREG(MEGASOC_SD_NISR)) {};
     // Check err
     if (SDREG(MEGASOC_SD_EISR)) {
-        debugf("CMD%d ERR: %d\n",index,SDREG(MEGASOC_SD_EISR));
+        // debugf("CMD%d ERR: %d\n",index,SDREG(MEGASOC_SD_EISR));
         return;
     }
     // Return
@@ -49,25 +49,45 @@ void sd_send_cmd18(u_int sd_addr) {
     SDREG(MEGASOC_SD_ARGR_L) = ((uint16_t)(sd_addr & 0xffff));
     // Set flags
     cmd |= (0b10 << 0) | (1 << 3) | (1 << 4) | (1 << 5); 
-    debugf("Sending CMD18: %x\n",cmd);
-    debugf("ARGS: %x %x\n",SDREG(MEGASOC_SD_ARGR_H), SDREG(MEGASOC_SD_ARGR_L));
+    // debugf("Sending CMD18: %x\n",cmd);
+    // debugf("ARGS: %x %x\n",SDREG(MEGASOC_SD_ARGR_H), SDREG(MEGASOC_SD_ARGR_L));
     SDREG(MEGASOC_SD_CMDR)= cmd;
     // Wait
     while(!(SDREG(MEGASOC_SD_NISR) & (0x2))) {
     };
     // Check err
     if (SDREG(MEGASOC_SD_EISR) | SDREG(MEGASOC_SD_ADMAESR)) {
-        debugf("CMD18 ERR: %d\n",SDREG(MEGASOC_SD_EISR));
-        debugf("CMD18 ADMA_ERR: %d\n",SDREG(MEGASOC_SD_ADMAESR));
+        // debugf("CMD18 ERR: %d\n",SDREG(MEGASOC_SD_EISR));
+        // debugf("CMD18 ADMA_ERR: %d\n",SDREG(MEGASOC_SD_ADMAESR));
         return;
     }
     // Reset interruputs
     // TODO: This is DUMB; see if it works
-    SDREG(MEGASOC_SD_NISR) = 0;
+    SDREG(MEGASOC_SD_NISR) = 0xffff;
 }
 
-void sd_send_wr() {
-    
+void sd_send_cmd25(u_int sd_addr) {
+    uint16_t cmd = 25 << 8;
+    // Set arguments
+    SDREG(MEGASOC_SD_ARGR_H) = ((uint16_t)(sd_addr >> 16));
+    SDREG(MEGASOC_SD_ARGR_L) = ((uint16_t)(sd_addr & 0xffff));
+    // Set flags
+    cmd |= (0b10 << 0) | (1 << 3) | (1 << 4) | (1 << 5); 
+    // debugf("Sending CMD25: %x\n",cmd);
+    // debugf("ARGS: %x %x\n",SDREG(MEGASOC_SD_ARGR_H), SDREG(MEGASOC_SD_ARGR_L));
+    SDREG(MEGASOC_SD_CMDR)= cmd;
+    // Wait
+    while(!(SDREG(MEGASOC_SD_NISR) & (0x2))) {
+    };
+    // Check err
+    if (SDREG(MEGASOC_SD_EISR) | SDREG(MEGASOC_SD_ADMAESR)) {
+        // debugf("CMD18 ERR: %d\n",SDREG(MEGASOC_SD_EISR));
+        // debugf("CMD18 ADMA_ERR: %d\n",SDREG(MEGASOC_SD_ADMAESR));
+        return;
+    }
+    // Reset interruputs
+    // TODO: This is DUMB; see if it works
+    SDREG(MEGASOC_SD_NISR) = 0xffff;
 }
 
 void sd_intr_init() {
@@ -102,7 +122,7 @@ void sd_init() {
     // Send CMD8
     int target_voltage = 0x1AA;
     sd_send_cmd(8, 0, target_voltage, &res);
-    printk("CMD8 returned %x\n", res[0]);
+    // printk("CMD8 returned %x\n", res[0]);
     if (target_voltage != res[0]) panic("Not implemented: No response after CMD8");
     // Then, response is valid, send ACMD41
     do {
@@ -115,7 +135,7 @@ void sd_init() {
         );
     } while(!(res[1] & (1 << 15)));
     int ccs = (res[1] & (1 << 14)) >> 14;
-    debugf("CCS: %x\n", ccs);
+    // debugf("CCS: %x\n", ccs);
     // S18R = 0; directly to CMD2/CMD3
     // TODO: Is that it?
     sd_send_cmd(2,0,0,res);
@@ -126,13 +146,13 @@ void sd_init() {
     */
     sd_send_cmd(3,0,0,res);
     rca = res[1];
-    debugf("RCA: %x\n", rca);
+    // debugf("RCA: %x\n", rca);
     
     for (int i = 0; i < 8; i++) {
-        debugf("CMD3 res%d: %x\n",i,res[i]);
+        // debugf("CMD3 res%d: %x\n",i,res[i]);
     }
     sd_send_cmd(7,rca,0,NULL); 
 
     // Setup ADMA2
-    SDREG(MEGASOC_SD_HC1R) = 0x2 < 3;
+    SDREG_8(MEGASOC_SD_HC1R) = 0x2 << 3;
 }

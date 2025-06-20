@@ -69,6 +69,8 @@
 // Block Count; default sel to 16-bit 
 #define MEGASOC_SD_BLKCNTR (MEGASOC_SD_BASE + 0x6)
 
+// Block size
+#define MEGASOC_SD_BLKSIZE (MEGASOC_SD_BASE + 0x4)
 
 
 
